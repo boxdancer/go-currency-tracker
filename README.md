@@ -28,6 +28,7 @@
 ```http
 GET /ping
 ```
+`http://localhost:8080/ping`
 **Пример ответа:**
 ```
 pong
@@ -37,6 +38,7 @@ pong
 ```http
 GET /btc-usd
 ```
+`http://localhost:8080/btc-usd`
 **Пример ответа:**
 ```
 BTC/USD: 29341.00
