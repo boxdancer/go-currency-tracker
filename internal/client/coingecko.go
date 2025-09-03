@@ -35,7 +35,13 @@ func (c *CoinGeckoClient) GetPrice(ctx context.Context, id, vs string) (float64,
 	if err != nil {
 		return 0, fmt.Errorf("do request: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() {
+		if err := resp.Body.Close(); err != nil {
+			// Логируем ошибку закрытия, но не прерываем выполнение
+			// так как основная операция уже завершена
+			fmt.Printf("Warning: error closing response body: %v\n", err)
+		}
+	}()
 
 	if resp.StatusCode != http.StatusOK {
 		return 0, fmt.Errorf("unexpected status: %s", resp.Status)

@@ -17,7 +17,11 @@ func main() {
 	svc := currency.NewService(cg)
 
 	http.HandleFunc("/ping", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintln(w, "pong")
+		if _, err := fmt.Fprintln(w, "pong"); err != nil {
+			log.Printf("Error writing ping response: %v", err)
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
+			return
+		}
 	})
 
 	// Простой эндпоинт для BTC/USD (демо)
@@ -30,7 +34,12 @@ func main() {
 			http.Error(w, err.Error(), http.StatusBadGateway)
 			return
 		}
-		fmt.Fprintf(w, "BTC/USD: %.2f", price)
+		
+		if _, err := fmt.Fprintf(w, "BTC/USD: %.2f", price); err != nil {
+			log.Printf("Error writing BTC price response: %v", err)
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
+			return
+		}
 	})
 
 	// Конкурентное получение нескольких курсов
@@ -41,7 +50,7 @@ func main() {
 		pairs := map[string]string{
 			"bitcoin":  "usd",
 			"ethereum": "usd",
-			"usd": "rub",
+			"usd":      "rub",
 			// Можно добавить "bitcoin":"eur" и т.п.
 			// Фиат->фиат добавим позже через другой провайдер.
 		}
@@ -56,15 +65,21 @@ func main() {
 			}
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(status)
-			_ = json.NewEncoder(w).Encode(map[string]any{
+			if encodeErr := json.NewEncoder(w).Encode(map[string]any{
 				"data":  data,
 				"error": err.Error(),
-			})
+			}); encodeErr != nil {
+				log.Printf("Error encoding error response: %v", encodeErr)
+			}
 			return
 		}
 
 		w.Header().Set("Content-Type", "application/json")
-		_ = json.NewEncoder(w).Encode(data)
+		if err := json.NewEncoder(w).Encode(data); err != nil {
+			log.Printf("Error encoding success response: %v", err)
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
+			return
+		}
 	})
 
 	addr := ":8080"
