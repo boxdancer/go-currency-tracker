@@ -62,3 +62,20 @@ func (c *CoinGeckoClient) GetPrice(ctx context.Context, id, vs string) (float64,
 	}
 	return price, nil
 }
+
+// SetBaseURL allows tests (or advanced usage) to override the default API base URL.
+// Pass an empty string to ignore.
+func (c *CoinGeckoClient) SetBaseURL(u string) {
+	if u == "" {
+		return
+	}
+	c.baseURL = u
+}
+
+// SetHTTPClient allows injecting a custom http.Client (optional - useful for tests).
+func (c *CoinGeckoClient) SetHTTPClient(h *http.Client) {
+	if h == nil {
+		return
+	}
+	c.http = h
+}
