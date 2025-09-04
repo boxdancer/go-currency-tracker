@@ -5,18 +5,15 @@ import (
 	"fmt"
 	"sync"
 
+	"github.com/boxdancer/go-currency-tracker/internal/price"
 	"golang.org/x/sync/errgroup"
 )
 
-type PriceClient interface {
-	GetPrice(ctx context.Context, id, vs string) (float64, error)
-}
-
 type Service struct {
-	client PriceClient
+	client price.PriceClient
 }
 
-func NewService(c PriceClient) *Service {
+func NewService(c price.PriceClient) *Service {
 	return &Service{client: c}
 }
 
