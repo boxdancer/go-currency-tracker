@@ -4,24 +4,21 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"time"
 
+	"github.com/boxdancer/go-currency-tracker/internal/cache"
 	"github.com/boxdancer/go-currency-tracker/internal/price"
-	"github.com/redis/go-redis/v9"
 )
 
 // CachedPriceClient оборачивает backend (любой price.PriceClient) и добавляет Redis-кэш.
 type CachedPriceClient struct {
 	backend price.PriceClient
-	redis   *redis.Client
-	ttl     time.Duration
+	cache   cache.Cache
 }
 
-func NewCachedPriceClient(backend price.PriceClient, rdb *redis.Client, ttl time.Duration) *CachedPriceClient {
+func NewCachedPriceClient(backend price.PriceClient, c cache.Cache) *CachedPriceClient {
 	return &CachedPriceClient{
 		backend: backend,
-		redis:   rdb,
-		ttl:     ttl,
+		cache:   c,
 	}
 }
 
@@ -29,8 +26,8 @@ func (c *CachedPriceClient) GetPrice(ctx context.Context, id, vs string) (float6
 	key := fmt.Sprintf("price:%s:%s", id, vs)
 
 	// Попытка взять из кэша (best-effort)
-	if c.redis != nil {
-		if val, err := c.redis.Get(ctx, key).Result(); err == nil {
+	if c.cache != nil {
+		if val, err := c.cache.Get(ctx, key); err == nil {
 			var cached float64
 			if unmarshalErr := json.Unmarshal([]byte(val), &cached); unmarshalErr == nil {
 				return cached, nil
@@ -46,9 +43,9 @@ func (c *CachedPriceClient) GetPrice(ctx context.Context, id, vs string) (float6
 	}
 
 	// Сохраняем в кэш (ошибки от Set игнорируем)
-	if c.redis != nil {
+	if c.cache != nil {
 		if data, marshalErr := json.Marshal(priceVal); marshalErr == nil {
-			_ = c.redis.Set(ctx, key, data, c.ttl).Err()
+			_ = c.cache.Set(ctx, key, data)
 		}
 	}
 

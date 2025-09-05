@@ -8,22 +8,20 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/boxdancer/go-currency-tracker/internal/cache"
 	"github.com/boxdancer/go-currency-tracker/internal/client"
 	"github.com/boxdancer/go-currency-tracker/internal/currency"
-	"github.com/redis/go-redis/v9"
 )
 
 func main() {
 	// Redis
-	rdb := redis.NewClient(&redis.Options{
-		Addr: "localhost:6379",
-	})
+	redisCache := cache.NewRedisCache("localhost:6379", time.Minute)
 
 	// Базовый клиент CoinGecko
 	cg := client.NewCoinGeckoClient(5 * time.Second)
 
 	// Кэшированный клиент поверх cg
-	cachedClient := client.NewCachedPriceClient(cg, rdb, time.Minute)
+	cachedClient := client.NewCachedPriceClient(cg, redisCache)
 
 	// Сервис использует cachedClient
 	svc := currency.NewService(cachedClient)
