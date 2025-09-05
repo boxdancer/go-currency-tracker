@@ -1,0 +1,7 @@
+global:
+  scrape_interval: 5s  # как часто собирать метрики
+
+scrape_configs:
+  - job_name: "go-currency-tracker"
+    static_configs:
+      - targets: ["app:8080"]  # имя контейнера Go-сервиса + порт

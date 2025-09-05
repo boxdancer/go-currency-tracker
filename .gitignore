@@ -1,4 +1,5 @@
-
+# Binaries
+*.env
 # Binaries
 *.exe
 *.exe~

@@ -1,5 +1,10 @@
 # go-currency-tracker
 
+## 🛠 Запуск контейнеров
+```bash
+docker-compose up -d
+```
+
 ## 🛠 Запуск линтера
 ```bash
 golangci-lint run
@@ -32,6 +37,30 @@ go test -race ./...
 ---
 
 ## 🔗 REST API
+
+### Prometheus GUI
+`http://localhost:9090/query`
+
+### Profiling
+```http
+GET /debug/pprof/
+```
+`http://localhost:8080/debug/pprof/`
+
+
+### Метрики Prometheus
+```http
+GET /metrics
+```
+`http://localhost:8080/metrics`
+
+**Пример ответа:**
+```
+...
+cached_client_cache_hits_total 50
+cached_client_cache_misses_total 3
+...
+```
 
 ### Проверка сервера
 ```http
